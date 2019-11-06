@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Injection Code Generation</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>    
+    <script>
+        async function onSubmit(e) {
+            e.preventDefault();
+            const value = e.target.csharp.value;
+            localStorage.setItem('codeGenValue', value);
+
+            const result = await fetch(`/api/codegen/${e.target.method.value}`, {
+                method: 'POST', headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(value)
+            })
+
+            document.querySelector('#result').innerText = await result.text();
+        }
+    </script>
+</head>
+<body>
+    <form onsubmit="onSubmit(event)" class="container">
+        <div class="row">
+            <div class="col-12 pb-2">
+                <textarea name="csharp" class="form-control" style="height: 25vh"></textarea>
+            </div>
+            <div class="offset-6 col-2">
+                <label for="constructor">Constructor</label>
+                <input type="radio" id="constructor" name="method" value="constructor" checked />
+            </div>
+            <div class="col-2">
+                <label for="mock">Mock</label>
+                <input type="radio" id="mock" name="method" value="mock" />
+            </div>
+            <div class="col-2">
+                <button class="btn btn-dark form-control">Generate</button>
+            </div>
+        </div>
+    </form>
+    <pre id="result" class="p-2"></pre>
+    <script>
+        document.querySelector('textarea').value = localStorage.getItem('codeGenValue');
+    </script>
+</body>
+</html>
