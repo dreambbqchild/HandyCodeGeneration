@@ -29,7 +29,7 @@ namespace InjectionBuilder.Builder
             if (ctor == null)
                 return string.Empty;
 
-            return ClassDeclaration(ctor.Identifier)
+            return ClassDeclaration(Identifier(string.Concat(ctor.Identifier.Value, "Test")))
                 .WithMembers(List(GetFields(ctor, transform, fieldModifierTokens).Concat(new MemberDeclarationSyntax[] { methodBuilder.Build(ctor, transform) })))                
                 .WithModifiers(TokenList(new SyntaxToken[] { Token(SyntaxKind.PublicKeyword) }))
                 .NormalizeWhitespace()

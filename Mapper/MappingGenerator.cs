@@ -18,11 +18,6 @@ namespace InjectionBuilder.Mapper
             return tree.GetRoot();
         }
 
-        private string VariableNameFromClass(ClassDeclarationSyntax @class)
-        {
-            return string.Concat(Char.ToLower(@class.Identifier.Text[0]), @class.Identifier.Text.Substring(1));
-        }
-
         private ExpressionSyntax SetFrom(IdentifierNameSyntax fromClassVarIdentifier, PropertyDeclarationSyntax property, HashSet<string> fromProperties)
         {
             if (fromProperties.Contains(property.Identifier.Text))
@@ -37,7 +32,7 @@ namespace InjectionBuilder.Mapper
         private IEnumerable<SyntaxNodeOrToken> Assignments(SyntaxNode toRoot, SyntaxNode fromRoot)
         {
             var addComma = false;
-            var fromClassVarIdentifier = IdentifierName(VariableNameFromClass(fromRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault()));
+            var fromClassVarIdentifier = IdentifierName(fromRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault().Identifier.VariableName());
             var fromProperties = new HashSet<string>(fromRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().Select(pd => pd.Identifier.Text));
             foreach (var prop in toRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().Where(p => p.AccessorList.Accessors.Count == 2)) 
             {
@@ -59,7 +54,7 @@ namespace InjectionBuilder.Mapper
             var toRoot = GetRootNode(sourceTo);
             var fromRoot = GetRootNode(sourceFrom);            
             var toClass = toRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            var variableName = VariableNameFromClass(toClass);
+            var variableName = toClass.Identifier.VariableName();
             return FieldDeclaration(
                     VariableDeclaration(
                         IdentifierName("var"))

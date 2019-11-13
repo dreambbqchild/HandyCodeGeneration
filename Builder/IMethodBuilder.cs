@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using InjectionBuilder.Mapper;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -34,10 +35,33 @@ namespace InjectionBuilder.Builder
 
     public sealed class InitalizeBuilder : IMethodBuilder
     {
+        private ExpressionStatementSyntax ExpressionSyntaxFor(string name, TypeSyntax type, ArgumentListSyntax argList)
+        {
+            return ExpressionStatement(
+                    AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression, IdentifierName(
+                            string.Concat("_", name)),
+                        ObjectCreationExpression(type)
+                        .WithArgumentList(argList)));
+        }
+
+        private ArgumentListSyntax GetMockObjects(ParameterListSyntax parameterList)
+        {
+            return ArgumentList(SeparatedList(parameterList.Parameters
+                .Select(p => Argument(MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(string.Concat("_", p.Identifier.ValueText)),
+                    IdentifierName("Object"))))));
+        }
+
         private BlockSyntax InitializeBody(ConstructorDeclarationSyntax ctor, IParameterTransform transform)
         {
             return Block(ctor.ParameterList.Parameters
-                .Select(p => ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(string.Concat("_", p.Identifier.ValueText)), ObjectCreationExpression(transform.ChangeType(p)).WithArgumentList(ArgumentList())))));
+                .Select(p => ExpressionSyntaxFor(p.Identifier.ValueText, transform.ChangeType(p), ArgumentList()))
+                .Concat(new ExpressionStatementSyntax[] 
+                { 
+                    ExpressionSyntaxFor(ctor.Identifier.VariableName(), ParseTypeName(ctor.Identifier.ValueText), GetMockObjects(ctor.ParameterList))
+                }));
         }
 
         public MemberDeclarationSyntax Build(ConstructorDeclarationSyntax ctor, IParameterTransform transform)
