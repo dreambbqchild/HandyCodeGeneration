@@ -17,9 +17,14 @@ namespace InjectionBuilder.Builder
                 yield return FieldDeclaration(transform.TransformToVariable(param)
                     .WithVariables(SingletonSeparatedList(VariableDeclarator(string.Concat("_", param.Identifier.ValueText)))))
                     .WithModifiers(TokenList(fieldModifiers));
-        }        
+        }
 
         public string CreateClass(string csharp, IMethodBuilder methodBuilder, IParameterTransform transform, params SyntaxKind[] fieldModifiers)
+        {
+            return CreateClass(csharp, methodBuilder, transform, string.Empty, fieldModifiers);
+        }
+
+        public string CreateClass(string csharp, IMethodBuilder methodBuilder, IParameterTransform transform, string classSuffix, params SyntaxKind[] fieldModifiers)
         {
             var fieldModifierTokens = fieldModifiers.Length > 0 ? fieldModifiers.Select(f => Token(f)).ToArray() 
                                                                 : new SyntaxToken[] { Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword) };
@@ -29,7 +34,7 @@ namespace InjectionBuilder.Builder
             if (ctor == null)
                 return string.Empty;
 
-            return ClassDeclaration(Identifier(string.Concat(ctor.Identifier.Value, "Test")))
+            return ClassDeclaration(Identifier(string.Concat(ctor.Identifier.Value, classSuffix)))
                 .WithMembers(List(GetFields(ctor, transform, fieldModifierTokens).Concat(new MemberDeclarationSyntax[] { methodBuilder.Build(ctor, transform) })))                
                 .WithModifiers(TokenList(new SyntaxToken[] { Token(SyntaxKind.PublicKeyword) }))
                 .NormalizeWhitespace()

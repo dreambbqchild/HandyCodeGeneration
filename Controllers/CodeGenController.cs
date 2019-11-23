@@ -30,7 +30,7 @@ namespace InjectionBuilder.Controllers
         [Route("[action]")]
         public string Mock([FromBody] string csharp)
         {
-            return processor.CreateClass(csharp, new InitalizeBuilder(), new MockTransform(), SyntaxKind.PrivateKeyword);
+            return processor.CreateClass(csharp, new InitalizeBuilder(), new MockTransform(), "Test", SyntaxKind.PrivateKeyword);
         }
 
         [HttpPost]
