@@ -19,18 +19,28 @@ namespace InjectionBuilder.Controllers
         private static readonly InjectionProcessor processor = new InjectionProcessor();
         private static readonly MappingGenerator mappingGenerator = new MappingGenerator();
 
+        private string MakeClassy(string csharp) 
+        {
+            var parens = csharp.IndexOf("(");
+            var className = csharp.Substring(0, parens).Trim();
+            if (!csharp.Contains("{"))
+                csharp += "{}";
+
+            return $"public class {className} {{ {csharp} }}";
+        }
+
         [HttpPost]
         [Route("[action]")]
         public string Constructor([FromBody] string csharp)
-        {            
-            return processor.CreateClass(csharp, new ConstructorBuilder(), new PassthroughTransform());
+        {
+            return processor.CreateClass(MakeClassy(csharp), new ConstructorBuilder(), new PassthroughTransform());
         }
 
         [HttpPost]
         [Route("[action]")]
         public string Mock([FromBody] string csharp)
         {
-            return processor.CreateClass(csharp, new InitalizeBuilder(), new MockTransform(), "Test", SyntaxKind.PrivateKeyword);
+            return processor.CreateClass(MakeClassy(csharp), new InitalizeBuilder(), new MockTransform(), "Test", SyntaxKind.PrivateKeyword);
         }
 
         [HttpPost]
