@@ -18,14 +18,26 @@ namespace InjectionBuilder.Mapper
             return tree.GetRoot();
         }
 
-        private ExpressionSyntax SetFrom(IdentifierNameSyntax fromClassVarIdentifier, PropertyDeclarationSyntax property, HashSet<string> fromProperties)
+        private ExpressionSyntax SetFrom(IdentifierNameSyntax fromClassVarIdentifier, PropertyDeclarationSyntax property, Dictionary<string, bool> fromProperties)
         {
-            if (fromProperties.Contains(property.Identifier.Text))
-                return MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        fromClassVarIdentifier,
-                        IdentifierName(property.Identifier.Text));
-
+            var id = property.Identifier.Text;
+            if (fromProperties.ContainsKey(id))
+            {
+                if(fromProperties[id])
+                    return InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    fromClassVarIdentifier,
+                                    IdentifierName(property.Identifier.Text)),
+                                IdentifierName("GetValueOrDefault")));
+                else
+                    return MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            fromClassVarIdentifier,
+                            IdentifierName(property.Identifier.Text));
+            }
             return LiteralExpression(SyntaxKind.DefaultLiteralExpression, Token(SyntaxKind.DefaultKeyword));
         }
 
@@ -33,7 +45,7 @@ namespace InjectionBuilder.Mapper
         {
             var addComma = false;
             var fromClassVarIdentifier = IdentifierName(fromRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault().Identifier.VariableName());
-            var fromProperties = new HashSet<string>(fromRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().Select(pd => pd.Identifier.Text));
+            var fromProperties = fromRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().ToDictionary(pd => pd.Identifier.Text, pd => pd.DescendantNodesAndSelf().OfType<NullableTypeSyntax>().Any());
             foreach (var prop in toRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().Where(p => p.AccessorList.Accessors.Count == 2)) 
             {
                 if (addComma)
