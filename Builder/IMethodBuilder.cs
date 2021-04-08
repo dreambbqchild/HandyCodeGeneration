@@ -21,7 +21,8 @@ namespace InjectionBuilder.Builder
         private BlockSyntax ConstructorBody(ConstructorDeclarationSyntax ctor)
         {
             return Block(ctor.ParameterList.Parameters
-                .Select(p => ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(string.Concat("_", p.Identifier.ValueText)), IdentifierName(p.Identifier.ValueText)))));
+                .Select(p => ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(string.Concat("_", p.Identifier.ValueText)), 
+                    BinaryExpression(SyntaxKind.CoalesceExpression, IdentifierName(p.Identifier.ValueText), ThrowExpression(ObjectCreationExpression(IdentifierName("ArgumentNullException")).WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(InvocationExpression(IdentifierName("nameof")).WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName(p.Identifier.ValueText)))))))))))))));
         }
 
         public MemberDeclarationSyntax Build(ConstructorDeclarationSyntax ctor, IParameterTransform transform)
