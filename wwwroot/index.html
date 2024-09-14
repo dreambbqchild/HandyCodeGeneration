@@ -14,7 +14,7 @@
                 method: 'POST', headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(value)
+                body: JSON.stringify(value || 'Foo(int bar, string baz, float blah)')
             })
 
             document.querySelector('#result').innerText = await result.text();
@@ -25,7 +25,7 @@
     <form onsubmit="onSubmit(event)" class="container">
         <div class="row">
             <div class="col-12 pb-2">
-                <textarea name="csharp" class="form-control" style="height: 25vh"></textarea>
+                <textarea name="csharp" class="form-control" style="height: 25vh" placeholder="Foo(int bar, string baz, float blah)"></textarea>
             </div>
             <div class="offset-6 col-2">
                 <label for="constructor">Constructor</label>
